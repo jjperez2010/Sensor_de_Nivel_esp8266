@@ -5,9 +5,13 @@
 #include <LiquidCrystal_I2C.h>
 #include <NewPing.h>
 
+#include <string.h>
+
 // pines (ajustar según el módulo/placa)
-#define TRIG_PIN D1
-#define ECHO_PIN D2
+// NOTA: usa números GPIO (no símbolos D1/D2) para compatibilidad con ESP-01
+// Cambia estos valores según tu placa (ej. NodeMCU: D6=12, D7=13)
+#define TRIG_PIN 12
+#define ECHO_PIN 13
 #define MAX_DISTANCE 200 // cm
 
 // pantalla I2C 16x2 (direccion 0x27 suele ser común)
@@ -90,7 +94,7 @@ void startAP() {
   lcd.clear();
   lcd.print("AP config");
   lcd.setCursor(0, 1);
-  lcd.print(IP);
+  lcd.print(WiFi.softAPIP().toString().c_str());
   server.on("/", handleRoot);
   server.on("/save", handleSave);
   server.begin();
@@ -112,7 +116,7 @@ bool connectWiFi() {
     lcd.clear();
     lcd.print("IP:");
     lcd.setCursor(0, 1);
-    lcd.print(WiFi.localIP());
+    lcd.print(WiFi.localIP().toString().c_str());
     server.on("/", handleRoot);
     server.begin();
     return true;
@@ -124,7 +128,8 @@ void setup() {
   Serial.begin(115200);
   lcd.init();
   lcd.backlight();
-  EEPROM.begin(sizeof(WiFiCred));
+  // reservar EEPROM (usar un tamaño fijo razonable para ESP8266)
+  EEPROM.begin(512);
   loadCredentials();
 
   if (hasSavedCredentials()) {
